@@ -1,0 +1,33 @@
+2024-12-07T21:37:09.131Z Error: Invalid credentials provided.
+2024-12-07T21:37:09.152Z Error ID: unauthorized
+2024-12-07T21:37:09.152Z     at Login.login (/data/data/com.termux/files/usr/lib/node_modules/heroku/node_modules/@heroku-cli/command/lib/login.js:79:19)
+2024-12-07T21:37:09.152Z     at async Login.run (/data/data/com.termux/files/usr/lib/node_modules/heroku/lib/commands/auth/login.js:11:9)
+2024-12-07T21:37:09.152Z     at async Login._run (/data/data/com.termux/files/usr/lib/node_modules/heroku/node_modules/@oclif/core/lib/command.js:117:22)
+2024-12-07T21:37:09.152Z     at async Config.runCommand (/data/data/com.termux/files/usr/lib/node_modules/heroku/node_modules/@oclif/core/lib/config/config.js:314:25)
+2024-12-07T21:37:09.152Z     at async Object.run (/data/data/com.termux/files/usr/lib/node_modules/heroku/node_modules/@oclif/core/lib/main.js:89:16)
+2024-12-07T21:41:13.952Z Error: Invalid credentials provided.
+2024-12-07T21:41:13.971Z Error ID: unauthorized
+2024-12-07T21:41:13.971Z     at Login.login (/data/data/com.termux/files/usr/lib/node_modules/heroku/node_modules/@heroku-cli/command/lib/login.js:79:19)
+2024-12-07T21:41:13.971Z     at async Login.run (/data/data/com.termux/files/usr/lib/node_modules/heroku/lib/commands/auth/login.js:11:9)
+2024-12-07T21:41:13.971Z     at async Login._run (/data/data/com.termux/files/usr/lib/node_modules/heroku/node_modules/@oclif/core/lib/command.js:117:22)
+2024-12-07T21:41:13.971Z     at async Config.runCommand (/data/data/com.termux/files/usr/lib/node_modules/heroku/node_modules/@oclif/core/lib/config/config.js:314:25)
+2024-12-07T21:41:13.971Z     at async Object.run (/data/data/com.termux/files/usr/lib/node_modules/heroku/node_modules/@oclif/core/lib/main.js:89:16)
+2024/12/07 21:59:31 Error: Expected response to be successful, got 422
+    at Request.handleFailure [as _handleFailure] (/data/data/com.termux/files/usr/lib/node_modules/heroku/node_modules/heroku-client/lib/request.js:255:11)
+    at Request.<anonymous> (/data/data/com.termux/files/usr/lib/node_modules/heroku/node_modules/heroku-cli-util/lib/command.js:56:12)
+    at /data/data/com.termux/files/usr/lib/node_modules/heroku/node_modules/heroku-client/lib/request.js:148:16
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2024/12/07 21:59:31 {"id":"verification_required","message":"To create an app, verify your account by adding payment information. Verify now at https://heroku.com/verify Learn more at https://devcenter.heroku.com/articles/account-verification "}
+2024/12/07 22:01:36 Error: Expected response to be successful, got 422
+    at Request.handleFailure [as _handleFailure] (/data/data/com.termux/files/usr/lib/node_modules/heroku/node_modules/heroku-client/lib/request.js:255:11)
+    at Request.<anonymous> (/data/data/com.termux/files/usr/lib/node_modules/heroku/node_modules/heroku-cli-util/lib/command.js:56:12)
+    at /data/data/com.termux/files/usr/lib/node_modules/heroku/node_modules/heroku-client/lib/request.js:148:16
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2024/12/07 22:01:36 {"id":"verification_required","message":"To create an app, verify your account by adding payment information. Verify now at https://heroku.com/verify Learn more at https://devcenter.heroku.com/articles/account-verification "}
+2024-12-07T23:02:21.049Z Warning: update with: "npm update -g heroku"
+2024-12-07T23:02:21.049Z     at Object.warn (/data/data/com.termux/files/usr/lib/node_modules/heroku/node_modules/@oclif/core/lib/errors/index.js:49:15)
+2024-12-07T23:02:21.049Z     at Updater.notUpdatable (/data/data/com.termux/files/usr/lib/node_modules/heroku/node_modules/@oclif/plugin-update/lib/update.js:218:27)
+2024-12-07T23:02:21.049Z     at Updater.runUpdate (/data/data/com.termux/files/usr/lib/node_modules/heroku/node_modules/@oclif/plugin-update/lib/update.js:30:18)
+2024-12-07T23:02:21.049Z     at async UpdateCommand._run (/data/data/com.termux/files/usr/lib/node_modules/heroku/node_modules/@oclif/core/lib/command.js:117:22)
+2024-12-07T23:02:21.049Z     at async Config.runCommand (/data/data/com.termux/files/usr/lib/node_modules/heroku/node_modules/@oclif/core/lib/config/config.js:314:25)
+2024-12-07T23:02:21.049Z     at async Object.run (/data/data/com.termux/files/usr/lib/node_modules/heroku/node_modules/@oclif/core/lib/main.js:89:16)

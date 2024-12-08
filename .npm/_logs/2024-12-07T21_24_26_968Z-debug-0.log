@@ -1,0 +1,17 @@
+0 verbose cli /data/data/com.termux/files/usr/bin/node /data/data/com.termux/files/usr/lib/node_modules/npm/bin/npm-cli.js
+1 info using npm@10.8.3
+2 info using node@v22.9.0
+3 silly config load:file:/data/data/com.termux/files/usr/lib/node_modules/npm/npmrc
+4 silly config load:file:/data/data/com.termux/files/home/.npmrc
+5 silly config load:file:/data/data/com.termux/files/usr/etc/npmrc
+6 verbose title npm bin
+7 verbose argv "bin" "--global"
+8 verbose logfile logs-max:10 dir:/data/data/com.termux/files/home/.npm/_logs/2024-12-07T21_24_26_968Z-
+9 verbose logfile /data/data/com.termux/files/home/.npm/_logs/2024-12-07T21_24_26_968Z-debug-0.log
+10 silly logfile done cleaning log files
+11 verbose cwd /data/data/com.termux/files/usr/lib/node_modules/heroku/node_modules/yarn
+12 verbose os Linux 5.4.259-qgki-g6f25851aad0d
+13 verbose node v22.9.0
+14 verbose npm  v10.8.3
+15 verbose exit 1
+16 verbose code 1
