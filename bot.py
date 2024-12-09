@@ -1,52 +1,73 @@
-from telegram import Update
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
 import random
+import logging
+from telegram import Update
+from telegram.ext import Application, CommandHandler, CallbackContext
 
-# Идеи для свиданий
-date_ideas = [
-    "Ужин при свечах дома",
-    "Прогулка по парку с пикником",
-    "Совместный мастер-класс по кулинарии",
-    "Выезд на природу с палатками",
-    "Посещение музея или выставки"
+# Настройка логирования
+logging.basicConfig(
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    level=logging.INFO
+)
+logger = logging.getLogger(__name__)
+
+# Список поз, вынесенный в константу
+POSES = [
+    "Объятия на диване",
+    "Поза ложки",
+    "Классическая миссионерская",
+    "Наездница",
+    "Поза 69",
+    "Догги-стайл",
+    "Обратная наездница",
+    "Поза лотоса",
+    "Сидя на стуле",
+    "На столе",
 ]
 
-# Игры для пар
-games = [
-    "Игра в вопросы: Что бы ты выбрал? (например, море или горы?)",
-    "Угадай предпочтение партнера: что он предпочитает - кошек или собак?",
-    "Напишите друг другу письмо, как в старые времена"
-]
+async def start_command(update: Update, context: CallbackContext) -> None:
+    """
+    Обработчик команды /start.
+    Приветствует пользователя и сообщает о доступных командах.
+    """
+    try:
+        await update.message.reply_text(
+            "Привет! Я бот, который поможет вам разнообразить ваши вечера. "
+            "Попробуйте команду /random, чтобы получить случайную позу."
+        )
+    except Exception as e:
+        logger.error(f"Ошибка в обработчике /start: {e}")
 
-# Функция для команды /date
-def date(update: Update, context: CallbackContext) -> None:
-    idea = random.choice(date_ideas)
-    update.message.reply_text(f"Вот идея для свидания: {idea}")
+async def random_command(update: Update, context: CallbackContext) -> None:
+    """
+    Обработчик команды /random.
+    Отправляет случайную позу из списка.
+    """
+    try:
+        random_pose = random.choice(POSES)
+        await update.message.reply_text(f'Попробуйте эту позу: {random_pose}')
+    except Exception as e:
+        logger.error(f"Ошибка в обработчике /random: {e}")
 
-# Функция для команды /game
-def game(update: Update, context: CallbackContext) -> None:
-    challenge = random.choice(games)
-    update.message.reply_text(f"Вот игра для вас: {challenge}")
-
-# Основная функция
 def main() -> None:
-    # Вставьте сюда ваш токен
-    TOKEN = '2056709740:AAFnVh_aQmQB_MirfS_T02txVg53MmzQnJE'  
-    # Здесь должен быть реальный токен, полученный от BotFather
+    """
+    Основная функция, запускающая бота.
+    """
+    try:
+        # Замените строку ниже вашим токеном
+        BOT_TOKEN = "7601748735:AAEe3aIX8OSBH4-W-0vz3_IB_SEhg30TmRI"
 
-    # Создаем объект бота
-    updater = Updater(TOKEN)
+        # Создание приложения
+        application = Application.builder().token(BOT_TOKEN).build()
 
-    # Получаем диспетчера
-    dispatcher = updater.dispatcher
+        # Регистрация обработчиков команд
+        application.add_handler(CommandHandler("start", start_command))
+        application.add_handler(CommandHandler("random", random_command))
 
-    # Добавляем обработчики команд
-    dispatcher.add_handler(CommandHandler("date", date))
-    dispatcher.add_handler(CommandHandler("game", game))
+        # Запуск бота
+        logger.info("Бот запущен.")
+        application.run_polling()
+    except Exception as e:
+        logger.critical(f"Критическая ошибка: {e}")
 
-    # Запускаем бота
-    updater.start_polling()
-    updater.idle()
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
