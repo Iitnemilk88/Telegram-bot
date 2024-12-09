@@ -1,7 +1,7 @@
 import random
 import logging
 from telegram import Update
-from telegram.ext import Application, CommandHandler, CallbackContext, ConversationHandler, MessageHandler, filters
+from telegram.ext import Application, CommandHandler, CallbackContext, MessageHandler, filters
 
 # Настройка логирования
 logging.basicConfig(
@@ -11,8 +11,6 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Список поз, вынесенный в константу
-
-
 POSES = [
     ("Объятия на диване", "Партнеры сидят на диване, обнимают друг друга, расслаблены и наслаждаются близостью."),
     ("Поза ложки", "Партнеры лежат на боку, один за другим, обвив друг друга руками."),
@@ -50,9 +48,7 @@ POSES = [
     ("Поза под стеклом", "Один партнер лежит на спине, второй партнер стоит прямо над ним, поддерживая стекло."),
 ]
 
-# Этапы разговора
-CHOOSING, TELL_POSE = range(2)
-
+# Настройки обработки команд
 async def start_command(update: Update, context: CallbackContext) -> None:
     """
     Обработчик команды /start.
@@ -69,29 +65,23 @@ async def start_command(update: Update, context: CallbackContext) -> None:
 async def random_command(update: Update, context: CallbackContext) -> None:
     """
     Обработчик команды /random.
-    Отправляет случайную позу из списка.
+    Отправляет случайную позу с описанием.
     """
     try:
-        random_pose = random.choice(POSES)
-        await update.message.reply_text(f'Попробуйте эту позу: {random_pose}')
+        random_pose, description = random.choice(POSES)
+        await update.message.reply_text(f'Попробуйте эту позу: {random_pose}\nОписание: {description}')
         await update.message.reply_text("Хотите попробовать еще одну? Напишите /random или /stop.")
     except Exception as e:
         logger.error(f"Ошибка в обработчике /random: {e}")
 
-async def stop_command(update: Update, context: CallbackContext) -> None:
+async def message_handler(update: Update, context: CallbackContext) -> None:
     """
-    Обработчик команды /stop.
-    Завершает разговор.
+    Обработчик текстовых сообщений, вызывающий команду /start.
     """
-    await update.message.reply_text("До свидания! Надеюсь, вам понравились наши позы.")
-    return ConversationHandler.END
-
-async def choose_again(update: Update, context: CallbackContext) -> int:
-    """
-    Запросить пользователя, хочет ли он выбрать еще одну позу.
-    """
-    await update.message.reply_text("Хотите попробовать другую позу? Напишите /random или /stop.")
-    return CHOOSING
+    try:
+        await start_command(update, context)
+    except Exception as e:
+        logger.error(f"Ошибка в обработчике сообщений: {e}")
 
 def main() -> None:
     """
@@ -107,23 +97,9 @@ def main() -> None:
         # Регистрация обработчиков команд
         application.add_handler(CommandHandler("start", start_command))
         application.add_handler(CommandHandler("random", random_command))
-        application.add_handler(CommandHandler("stop", stop_command))
 
-        # Обработчик для выбора позы
-        conversation_handler = ConversationHandler(
-            entry_points=[CommandHandler('random', random_command)],
-            states={
-                CHOOSING: [
-                    MessageHandler(filters.TEXT & ~filters.COMMAND, choose_again),
-                ],
-                TELL_POSE: [
-                    MessageHandler(filters.TEXT & ~filters.COMMAND, choose_again),
-                ],
-            },
-            fallbacks=[CommandHandler("stop", stop_command)],
-        )
-
-        application.add_handler(conversation_handler)
+        # Обработчик для всех текстовых сообщений
+        application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, message_handler))
 
         # Запуск бота
         logger.info("Бот запущен.")
