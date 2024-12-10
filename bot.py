@@ -22,7 +22,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     )
     return FIRST_TASK
 
-# Первое задание с описанием
+# Первое задание
 async def first_task(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     query = update.callback_query
     await query.answer()
@@ -30,19 +30,29 @@ async def first_task(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     if query.data == 'FIRST_2':
         await query.edit_message_text(
             text="Печать активируется, дверь открыта! Вы переходите к следующему заданию.\n\n"
-            "Описание: Вы выбрали заклинание 'Алохомора', которое оказалось верным. "
-            "Печать излучает яркий свет, и перед вами открывается проход. Вы чувствуете, что вы на правильном пути."
+                 "Описание: Вы выбрали заклинание 'Алохомора', которое оказалось верным. "
+                 "Печать излучает яркий свет, и перед вами открывается проход. Вы чувствуете, что вы на правильном пути."
         )
         return await second_task(update, context)
     else:
         await query.edit_message_text(
             text="Неверное заклинание! Попробуйте ещё раз.\n\n"
-            "Описание: Заклинание не сработало. Печать мигает, но не реагирует на вашу попытку. "
-            "Подумайте, какое заклинание могло бы подойти для активации магической силы."
+                 "Описание: Заклинание не сработало. Печать мигает, но не реагирует на вашу попытку. "
+                 "Подумайте, какое заклинание могло бы подойти для активации магической силы."
+        )
+        # Отправляем новое сообщение с клавиатурой
+        await query.message.reply_text(
+            "Выберите заклинание снова:",
+            reply_markup=InlineKeyboardMarkup([
+                [InlineKeyboardButton('Люмос', callback_data='FIRST_1')],
+                [InlineKeyboardButton('Алохомора', callback_data='FIRST_2')],
+                [InlineKeyboardButton('Эксспекто Патронум', callback_data='FIRST_3')],
+                [InlineKeyboardButton('Авада Кедавра', callback_data='FIRST_4')]
+            ])
         )
         return FIRST_TASK
 
-# Второе задание с описанием
+# Второе задание
 async def second_task(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     await update.callback_query.message.reply_text(
         "Новое задание: 'Сопротивление магическим ловушкам'.\n\n"
@@ -65,18 +75,27 @@ async def second_task_response(update: Update, context: ContextTypes.DEFAULT_TYP
     if query.data == 'SECOND_1':
         await query.edit_message_text(
             text="Ловушка временно замораживается. Вы успеваете пройти дальше!\n\n"
-            "Описание: Вы произносите 'Петрификус Тоталус', и ловушка замораживается, давая вам возможность безопасно продвинуться вперёд. "
-            "Теперь вы готовы к следующему испытанию."
+                 "Описание: Вы произносите 'Петрификус Тоталус', и ловушка замораживается, давая вам возможность безопасно продвинуться вперёд. "
+                 "Теперь вы готовы к следующему испытанию."
         )
         return await third_task(update, context)
     else:
         await query.edit_message_text(
             text="Заклинание не сработало. Попробуйте ещё раз.\n\n"
-            "Описание: Вы пробуете другое заклинание, но ловушка не реагирует должным образом. Подумайте, какое заклинание подходит для защиты от ловушки."
+                 "Описание: Вы пробуете другое заклинание, но ловушка не реагирует должным образом. Подумайте, какое заклинание подходит для защиты от ловушки."
+        )
+        await query.message.reply_text(
+            "Попробуйте ещё раз:",
+            reply_markup=InlineKeyboardMarkup([
+                [InlineKeyboardButton('Петрификус Тоталус', callback_data='SECOND_1')],
+                [InlineKeyboardButton('Левикорпус', callback_data='SECOND_2')],
+                [InlineKeyboardButton('Люмос', callback_data='SECOND_3')],
+                [InlineKeyboardButton('Авада Кедавра', callback_data='SECOND_4')]
+            ])
         )
         return SECOND_TASK
 
-# Третье задание с описанием
+# Добавьте аналогичное поведение для третьего и четвёртого задания.
 async def third_task(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     await update.callback_query.message.reply_text(
         "Новое задание: 'Нахождение скрытого объекта'.\n\n"
@@ -99,18 +118,25 @@ async def third_task_response(update: Update, context: ContextTypes.DEFAULT_TYPE
     if query.data == 'THIRD_3':
         await query.edit_message_text(
             text="Заклинание 'Редукто' сработало! Вы нашли нужный кристалл.\n\n"
-            "Описание: Вы произносите 'Редукто', и с помощью разрушительной силы разрушаете всё лишнее, оставляя только ключевой кристалл. "
-            "Вы берёте его и готовитесь к последнему заданию."
+                 "Описание: Вы произносите 'Редукто', и с помощью разрушительной силы разрушаете всё лишнее, оставляя только ключевой кристалл. "
+                 "Вы берёте его и готовитесь к последнему заданию."
         )
         return await fourth_task(update, context)
     else:
         await query.edit_message_text(
             text="Попробуйте ещё раз.\n\n"
-            "Описание: Заклинание не позволило найти нужный кристалл. Постарайтесь выбрать что-то другое."
+                 "Описание: Заклинание не позволило найти нужный кристалл. Постарайтесь выбрать что-то другое."
+        )
+        await query.message.reply_text(
+            "Попробуйте снова найти скрытый объект:",
+            reply_markup=InlineKeyboardMarkup([
+                [InlineKeyboardButton('Стомпор', callback_data='THIRD_1')],
+                [InlineKeyboardButton('Люмос', callback_data='THIRD_2')],
+                [InlineKeyboardButton('Редукто', callback_data='THIRD_3')],
+                [InlineKeyboardButton('Империус', callback_data='THIRD_4')]
+            ])
         )
         return THIRD_TASK
-
-# Четвертое задание с описанием
 async def fourth_task(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     await update.callback_query.message.reply_text(
         "Последнее задание: 'Сохранение памяти'.\n\n"
@@ -133,14 +159,23 @@ async def fourth_task_response(update: Update, context: ContextTypes.DEFAULT_TYP
     if query.data == 'FOURTH_1':
         await query.edit_message_text(
             text="Поздравляем! Вы успешно завершили квест.\n\n"
-            "Описание: Вы произносите 'Петрификус Тоталус', и дух замораживается, предоставляя вам возможность забрать важные воспоминания. "
-            "Вы завершили квест и можете гордиться своей победой!"
+                 "Описание: Вы произносите 'Петрификус Тоталус', и дух замораживается, предоставляя вам возможность забрать важные воспоминания. "
+                 "Вы завершили квест и можете гордиться своей победой!"
         )
         return ConversationHandler.END
     else:
         await query.edit_message_text(
             text="Попробуйте ещё раз.\n\n"
-            "Описание: Заклинание не сработало, и дух начинает исчезать. Вы должны быть осторожны и выбрать другое заклинание."
+                 "Описание: Заклинание не сработало, и дух начинает исчезать. Вы должны быть осторожны и выбрать другое заклинание."
+        )
+        await query.message.reply_text(
+            "Попробуйте снова сохранить воспоминания:",
+            reply_markup=InlineKeyboardMarkup([
+                [InlineKeyboardButton('Петрификус Тоталус', callback_data='FOURTH_1')],
+                [InlineKeyboardButton('Империус', callback_data='FOURTH_2')],
+                [InlineKeyboardButton('Люмос', callback_data='FOURTH_3')],
+                [InlineKeyboardButton('Авада Кедавра', callback_data='FOURTH_4')]
+            ])
         )
         return FOURTH_TASK
 
