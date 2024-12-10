@@ -1,133 +1,166 @@
-import random
-import logging
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Application, CommandHandler, CallbackContext, CallbackQueryHandler
+from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ConversationHandler, ContextTypes
 
-# Настройка логирования
-logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    level=logging.INFO
-)
-logger = logging.getLogger(__name__)
+TOKEN = '7601748735:AAEe3aIX8OSBH4-W-0vz3_IB_SEhg30TmRI'
 
-# Список поз, вынесенный в константу
-POSES = [
-    ("Объятия на диване", "Партнеры сидят на диване, обнимают друг друга, расслаблены и наслаждаются близостью."),
-    ("Поза ложки", "Партнеры лежат на боку, один за другим, обвив друг друга руками."),
-    ("Классическая миссионерская", "Один партнер лежит на спине, второй сверху, лицом к первому."),
-    ("Наездница", "Один партнер лежит на спине, второй сидит сверху, лицом к партнеру."),
-    ("Поза 69", "Оба партнера лежат головой вниз и выполняют оральные ласки друг другу."),
-    ("Догги-стайл", "Один партнер стоит на коленях и ладонях, а второй партнер находится на коленях сзади."),
-    ("Обратная наездница", "Один партнер лежит на спине, второй сидит сверху, спиной к партнеру."),
-    ("Поза лотоса", "Один партнер сидит с перекрещенными ногами, другой садится ему на колени, лицом к партнеру."),
-    ("Сидя на стуле", "Один партнер сидит на стуле, другой сидит ему на коленях лицом к нему."),
-    ("На столе", "Один партнер сидит на столе, второй стоит перед ним или между его ног."),
-]
+# Состояния игры
+FIRST_TASK, SECOND_TASK, THIRD_TASK, FOURTH_TASK = range(4)
 
-# Настройки обработки команд
-async def start_command(update: Update, context: CallbackContext) -> None:
-    """
-    Обработчик команды /start.
-    Приветствует пользователя и показывает кнопки для выбора позы.
-    """
-    try:
-        if update.message:  # Если сообщение пришло через команду
-            chat = update.message.chat
-        elif update.callback_query:  # Если сообщение через кнопку
-            chat = update.callback_query.message.chat
-        else:
-            return  # Ничего не делаем, если нет ни message, ни callback_query
+# Начало игры
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    await update.message.reply_text(
+        'Добро пожаловать в квест! Ваше первое задание: "Пробуждение магической печати".\n\n'
+        'Вы попадаете в древний зал, в центре которого расположена светящаяся магическая печать. '
+        'Чтобы активировать её и открыть путь вперёд, нужно выбрать правильное заклинание.\n\n'
+        'Выберите заклинание:',
+        reply_markup=InlineKeyboardMarkup([
+            [InlineKeyboardButton('Люмос', callback_data='FIRST_1')],
+            [InlineKeyboardButton('Алохомора', callback_data='FIRST_2')],
+            [InlineKeyboardButton('Эксспекто Патронум', callback_data='FIRST_3')],
+            [InlineKeyboardButton('Авада Кедавра', callback_data='FIRST_4')]
+        ])
+    )
+    return FIRST_TASK
 
-        keyboard = [
-            [InlineKeyboardButton("💚 Получить случайную позу 💚", callback_data='random_pose')],
-            [InlineKeyboardButton("⛔ Остановить ⛔", callback_data='stop')]
-        ]
-        reply_markup = InlineKeyboardMarkup(keyboard)
-        await chat.send_message(
-            "Привет! Я бот, который поможет вам разнообразить ваши вечера. "
-            "Нажмите кнопку ниже, чтобы получить случайную позу.",
-            reply_markup=reply_markup
+# Первое задание с описанием
+async def first_task(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    query = update.callback_query
+    await query.answer()
+
+    if query.data == 'FIRST_2':
+        await query.edit_message_text(
+            text="Печать активируется, дверь открыта! Вы переходите к следующему заданию.\n\n"
+            "Описание: Вы выбрали заклинание 'Алохомора', которое оказалось верным. "
+            "Печать излучает яркий свет, и перед вами открывается проход. Вы чувствуете, что вы на правильном пути."
         )
-    except Exception as e:
-        logger.error(f"Ошибка в обработчике /start: {e}")
-
-async def random_command(update: Update, context: CallbackContext) -> None:
-    """
-    Обработчик для случайной позы.
-    Отправляет случайную позу с описанием.
-    """
-    try:
-        random_pose, description = random.choice(POSES)
-        await update.callback_query.answer()
-        await update.callback_query.message.edit_text(
-            f'Попробуйте эту позу: {random_pose}\nОписание: {description}'
+        return await second_task(update, context)
+    else:
+        await query.edit_message_text(
+            text="Неверное заклинание! Попробуйте ещё раз.\n\n"
+            "Описание: Заклинание не сработало. Печать мигает, но не реагирует на вашу попытку. "
+            "Подумайте, какое заклинание могло бы подойти для активации магической силы."
         )
-        # После ответа на кнопки снова предлагается выбор
-        keyboard = [
-            [InlineKeyboardButton("💚 Получить другую позу 💚", callback_data='random_pose')],
-            [InlineKeyboardButton("⛔ Остановить ⛔", callback_data='stop')]
-        ]
-        reply_markup = InlineKeyboardMarkup(keyboard)
-        await update.callback_query.message.reply_text(
-            "Хотите попробовать еще одну? Нажмите кнопку ниже.",
-            reply_markup=reply_markup
+        return FIRST_TASK
+
+# Второе задание с описанием
+async def second_task(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    await update.callback_query.message.reply_text(
+        "Новое задание: 'Сопротивление магическим ловушкам'.\n\n"
+        "В этой комнате вы видите магическую ловушку, активирующуюся при любом движении. "
+        "Вам нужно выбрать заклинание, которое временно её обезвредит. Ошибка может привести к активизации ловушки!\n\n"
+        "Выберите заклинание:",
+        reply_markup=InlineKeyboardMarkup([
+            [InlineKeyboardButton('Петрификус Тоталус', callback_data='SECOND_1')],
+            [InlineKeyboardButton('Левикорпус', callback_data='SECOND_2')],
+            [InlineKeyboardButton('Люмос', callback_data='SECOND_3')],
+            [InlineKeyboardButton('Авада Кедавра', callback_data='SECOND_4')]
+        ])
+    )
+    return SECOND_TASK
+
+async def second_task_response(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    query = update.callback_query
+    await query.answer()
+
+    if query.data == 'SECOND_1':
+        await query.edit_message_text(
+            text="Ловушка временно замораживается. Вы успеваете пройти дальше!\n\n"
+            "Описание: Вы произносите 'Петрификус Тоталус', и ловушка замораживается, давая вам возможность безопасно продвинуться вперёд. "
+            "Теперь вы готовы к следующему испытанию."
         )
-    except Exception as e:
-        logger.error(f"Ошибка в обработчике random_command: {e}")
-
-async def stop_command(update: Update, context: CallbackContext) -> None:
-    """
-    Обработчик команды 'stop', заменяет сообщение кнопкой для старта.
-    """
-    try:
-        await update.callback_query.answer()
-        # Меняем сообщение на кнопку для старта
-        keyboard = [
-            [InlineKeyboardButton("🔄 Начать снова 🔄", callback_data='restart')]
-        ]
-        reply_markup = InlineKeyboardMarkup(keyboard)
-        await update.callback_query.message.edit_text(
-            "Если хотите продолжить, нажмите кнопку ниже.",
-            reply_markup=reply_markup
+        return await third_task(update, context)
+    else:
+        await query.edit_message_text(
+            text="Заклинание не сработало. Попробуйте ещё раз.\n\n"
+            "Описание: Вы пробуете другое заклинание, но ловушка не реагирует должным образом. Подумайте, какое заклинание подходит для защиты от ловушки."
         )
-    except Exception as e:
-        logger.error(f"Ошибка в обработчике stop_command: {e}")
+        return SECOND_TASK
 
-async def restart_command(update: Update, context: CallbackContext) -> None:
-    """
-    Обработчик кнопки "Начать снова" после остановки.
-    Воссоздаёт поведение команды /start.
-    """
-    try:
-        await start_command(update, context)
-    except Exception as e:
-        logger.error(f"Ошибка в обработчике restart_command: {e}")
+# Третье задание с описанием
+async def third_task(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    await update.callback_query.message.reply_text(
+        "Новое задание: 'Нахождение скрытого объекта'.\n\n"
+        "В комнате с блестящими кристаллами находится один ключевой предмет, который открывает дверь в следующую часть зала. "
+        "Вы должны использовать заклинание, чтобы найти его среди множества похожих кристаллов.\n\n"
+        "Выберите заклинание:",
+        reply_markup=InlineKeyboardMarkup([
+            [InlineKeyboardButton('Стомпор', callback_data='THIRD_1')],
+            [InlineKeyboardButton('Люмос', callback_data='THIRD_2')],
+            [InlineKeyboardButton('Редукто', callback_data='THIRD_3')],
+            [InlineKeyboardButton('Империус', callback_data='THIRD_4')]
+        ])
+    )
+    return THIRD_TASK
 
+async def third_task_response(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    query = update.callback_query
+    await query.answer()
+
+    if query.data == 'THIRD_3':
+        await query.edit_message_text(
+            text="Заклинание 'Редукто' сработало! Вы нашли нужный кристалл.\n\n"
+            "Описание: Вы произносите 'Редукто', и с помощью разрушительной силы разрушаете всё лишнее, оставляя только ключевой кристалл. "
+            "Вы берёте его и готовитесь к последнему заданию."
+        )
+        return await fourth_task(update, context)
+    else:
+        await query.edit_message_text(
+            text="Попробуйте ещё раз.\n\n"
+            "Описание: Заклинание не позволило найти нужный кристалл. Постарайтесь выбрать что-то другое."
+        )
+        return THIRD_TASK
+
+# Четвертое задание с описанием
+async def fourth_task(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    await update.callback_query.message.reply_text(
+        "Последнее задание: 'Сохранение памяти'.\n\n"
+        "Вы видите духа, охраняющего воспоминания о важной информации. "
+        "Чтобы получить эту информацию, нужно использовать правильное заклинание. Неверное действие может уничтожить воспоминания.\n\n"
+        "Выберите заклинание:",
+        reply_markup=InlineKeyboardMarkup([
+            [InlineKeyboardButton('Петрификус Тоталус', callback_data='FOURTH_1')],
+            [InlineKeyboardButton('Империус', callback_data='FOURTH_2')],
+            [InlineKeyboardButton('Люмос', callback_data='FOURTH_3')],
+            [InlineKeyboardButton('Авада Кедавра', callback_data='FOURTH_4')]
+        ])
+    )
+    return FOURTH_TASK
+
+async def fourth_task_response(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    query = update.callback_query
+    await query.answer()
+
+    if query.data == 'FOURTH_1':
+        await query.edit_message_text(
+            text="Поздравляем! Вы успешно завершили квест.\n\n"
+            "Описание: Вы произносите 'Петрификус Тоталус', и дух замораживается, предоставляя вам возможность забрать важные воспоминания. "
+            "Вы завершили квест и можете гордиться своей победой!"
+        )
+        return ConversationHandler.END
+    else:
+        await query.edit_message_text(
+            text="Попробуйте ещё раз.\n\n"
+            "Описание: Заклинание не сработало, и дух начинает исчезать. Вы должны быть осторожны и выбрать другое заклинание."
+        )
+        return FOURTH_TASK
+
+# Основная функция
 def main() -> None:
-    """
-    Основная функция, запускающая бота.
-    """
-    try:
-        # Замените строку ниже вашим токеном
-        BOT_TOKEN = "7601748735:AAEe3aIX8OSBH4-W-0vz3_IB_SEhg30TmRI"
+    application = Application.builder().token(TOKEN).build()
 
-        # Создание приложения
-        application = Application.builder().token(BOT_TOKEN).build()
+    conv_handler = ConversationHandler(
+        entry_points=[CommandHandler('start', start)],
+        states={
+            FIRST_TASK: [CallbackQueryHandler(first_task, pattern='^FIRST_')],
+            SECOND_TASK: [CallbackQueryHandler(second_task_response, pattern='^SECOND_')],
+            THIRD_TASK: [CallbackQueryHandler(third_task_response, pattern='^THIRD_')],
+            FOURTH_TASK: [CallbackQueryHandler(fourth_task_response, pattern='^FOURTH_')],
+        },
+        fallbacks=[],
+    )
 
-        # Регистрация обработчиков команд
-        application.add_handler(CommandHandler("start", start_command))
+    application.add_handler(conv_handler)
+    application.run_polling()
 
-        # Обработчики для инлайн-кнопок
-        application.add_handler(CallbackQueryHandler(random_command, pattern='random_pose'))
-        application.add_handler(CallbackQueryHandler(stop_command, pattern='stop'))
-        application.add_handler(CallbackQueryHandler(restart_command, pattern='restart'))
-
-        # Запуск бота
-        logger.info("Бот запущен.")
-        application.run_polling()
-
-    except Exception as e:
-        logger.critical(f"Критическая ошибка: {e}")
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
