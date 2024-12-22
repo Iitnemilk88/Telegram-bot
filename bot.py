@@ -1,42 +1,86 @@
-import random
-from telegram import Update
-from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
+import asyncio
+import logging
+import os
+import requests
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from telegram import Bot
+from telegram.ext import ApplicationBuilder
+from bs4 import BeautifulSoup
 
-# Функция для загрузки заданий из файла zad.txt
-def load_tasks():
-    with open('zad.txt', 'r', encoding='utf-8') as file:
-        tasks = file.readlines()
-    return [task.strip() for task in tasks]  # Убираем лишние пробелы и символы новой строки
+# Настройка логирования
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+)
+logger = logging.getLogger(__name__)
 
-# Функция для отправки 5 случайных заданий
-async def random_tasks(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    tasks = load_tasks()  # Загружаем все задания из файла
-    random_tasks = random.sample(tasks, 5)  # Рандомно выбираем 5 заданий
+# Загрузка переменных окружения
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+GROUP_ID = os.getenv("GROUP_ID")
 
-    # Отправляем все задания пользователю
-    response = '\n'.join(random_tasks)
-    await update.message.reply_text(response)
+if not BOT_TOKEN or not GROUP_ID:
+    logger.critical("Отсутствуют необходимые переменные окружения: BOT_TOKEN или GROUP_ID")
+    exit(1)
 
-# Функция для замены текста на выполнение команды /tasks
-async def text_to_tasks(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    # Выполнение команды /tasks
-    await random_tasks(update, context)
+# Инициализация бота
+application = ApplicationBuilder().token(BOT_TOKEN).build()
+bot = Bot(BOT_TOKEN)
 
+# Функция для парсинга RSS-ленты anekdot.ru
+def parse_anekdot_ru():
+    url = "https://www.anekdot.ru/rss/export_j.xml"
+    try:
+        response = requests.get(url, timeout=10)
+        soup = BeautifulSoup(response.content, "xml")
+
+        # Извлекаем заголовки и тексты анекдотов
+        jokes = []
+        for item in soup.find_all("item"):
+            title = item.find("title").text
+            description = item.find("description").text
+            jokes.append(f"*{title}*\n\n{description}")
+
+        return jokes
+    except Exception as e:
+        logger.error(f"Ошибка при парсинге anekdot.ru: {e}")
+        return []
+
+# Функция отправки анекдотов
+async def send_jokes():
+    logger.info("Парсим источники с анекдотами")
+
+    jokes_anekdot = parse_anekdot_ru()
+
+    if not jokes_anekdot:
+        message = "*Анекдоты*\n\n(Нет новых анекдотов)"
+    else:
+        message = "*Анекдоты*\n\n" + "\n\n".join(jokes_anekdot[:5])  # Ограничение на 5 анекдотов
+
+    try:
+        await bot.send_message(chat_id=GROUP_ID, text=message, parse_mode="Markdown")
+        logger.info("Анекдоты успешно отправлены.")
+    except Exception as e:
+        logger.error(f"Ошибка при отправке анекдотов: {e}")
+
+# Главная функция
 def main():
-    # Токен вашего бота
-    token = '7601748735:AAEe3aIX8OSBH4-W-0vz3_IB_SEhg30TmRI'  # Замените на токен вашего бота
+    # Создаем новый цикл событий
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
 
-    # Создаем объект Application для взаимодействия с Telegram API
-    application = Application.builder().token(token).build()
+    # Планировщик задач
+    scheduler = AsyncIOScheduler(event_loop=loop)
+    scheduler.add_job(send_jokes, "interval", hours=24)  # Запуск каждые 24 часа
+    scheduler.start()
 
-    # Регистрация обработчика команды /tasks
-    application.add_handler(CommandHandler('tasks', random_tasks))
+    logger.info("Бот запущен и планировщик задач активирован.")
 
-    # Регистрация обработчика текстовых сообщений (выполняет команду /tasks)
-    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, text_to_tasks))
+    # Запуск цикла событий
+    try:
+        loop.run_forever()
+    except (KeyboardInterrupt, SystemExit):
+        logger.info("Бот остановлен.")
+        scheduler.shutdown()
 
-    # Запуск бота
-    application.run_polling()
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
